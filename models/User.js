@@ -33,7 +33,7 @@ const userSchema = mongoose.Schema({
     token: {
         type: String
     },
-    toeknExp: {
+    tokenExp: {
         // 토큰의 유효기간
         type: Number
     }
@@ -41,6 +41,7 @@ const userSchema = mongoose.Schema({
 
 
 // Mongoose에서 가져온 pre method
+// user 정보를 저장하기 전에, 
 // 저장하기 전에 함수를 실행하게 만든다.
 userSchema.pre('save', function (next) {
     var user = this;
@@ -62,7 +63,8 @@ userSchema.pre('save', function (next) {
 })
 
 userSchema.methods.comparePassword = function (plainPassword, cb) {
-    // plainPassword 1234567    암호화된 비밀번호 ~~
+    // plainPassword 1234567 ||  DB에 있는 암호화된 비밀번호 ~~~~~~
+    // 복호화 하기는 불가하기 때문에, 암호화해서 비교한다.
     bcrypt.compare(plainPassword, this.password, function (err, isMatch) {
         if (err) return cb(err),
             cb(null, isMatch)
@@ -70,16 +72,14 @@ userSchema.methods.comparePassword = function (plainPassword, cb) {
 }
 
 userSchema.methods.generateToken = function (cb) {
-
     var user = this;
     console.log('user._id', user._id);
 
-
     // jsonwebtoken을 이용해서 token을 생성하기
-    // db의 id를 가져온다.
+    // db의 id를 가져온다. => _id
     var token = jwt.sign(user._id.toHexString(), 'secretToken')
 
-    user.toekn = token
+    user.token = token
     user.save(function (err, user) {
         if (err) return cb(err)
         cb(null, user)
